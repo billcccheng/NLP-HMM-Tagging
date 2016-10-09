@@ -48,11 +48,11 @@ def viterbi(sentences, transition, emission, tags):
           dp[i][tag] = 0
           for tag_prev in tags:
             # print dp[i-1][tag_prev], transition[tag_prev][tag], emission[tag_prev][word], dp[i-1][tag_prev] * transition[tag_prev][tag] * emission[tag_prev][word]
-            dp[i][tag] = max(dp[i][tag], dp[i-1][tag_prev] * transition[tag_prev][tag] * emission[tag][word])
+            dp[i][tag] = max(dp[i][tag], dp[i-1][tag_prev] * transition[tag_prev][tag] * emission[tag_prev][word])
     res = 0
     for tag in tags:
       res = max(res, dp[-1][tag]*transition[tag]["fin"] * emission[tag_prev][sentence[-1]])
-    print res
+    print dp, res
     # print
     # print transition
     # print
@@ -63,11 +63,11 @@ def main():
   file_sents = sys.argv[1]
   file_probs = sys.argv[2]
   words, sentences = get_word(file_sents)
-  # tags = ["A","B", "phi", "fin"]
-  tags = ["noun","verb", "inf", "prep", "phi", "fin"]
+  tags = ["A","B", "phi", "fin"]
+  # tags = ["noun","verb", "inf", "prep", "phi", "fin"]
   transition, emission = get_matrix(file_probs, words, tags)
-  # tags_normal = ["A", "B"]
-  tags_normal = ["noun","verb", "inf", "prep"]
+  tags_normal = ["A", "B"]
+  # tags_normal = ["noun","verb", "inf", "prep"]
   viterbi(sentences, transition, emission, tags_normal)
   # print emission
 
