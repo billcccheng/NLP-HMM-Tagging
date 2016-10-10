@@ -48,26 +48,33 @@ def viterbi(sentences, transition, emission, tags):
     
     sentence = sentence.split(" ")
     bkptr_list = []
-    final_viterbi_network = [];
     dp = [defaultdict(dict) for _ in range(len(sentence))]
+    final_viterbi_network = []
+    foward_dp = [defaultdict(dict) for _ in range(len(sentence))]
+    final_forward_network = []
     for i in range(0,len(sentence)):
       word = sentence[i].lower()
       if(i == 0):
         for tag in tags:
           dp[i][tag] = transition["phi"][tag]
+          foward_dp[i][tag] = 0
+          foward_dp[i][tag] += transition["phi"][tag]
           final_viterbi_network.append([word, tag, dp[i][tag]])
-          # print "P(%s=%s) = %f" %(word, tag, dp[i][tag])
+          final_forward_network.append([word, tag, foward_dp[i][tag]])
       else:
         bkptr = {}
         for tag in tags:
+          foward_prev = []
           dp_prev = []
           dp_prev_tag = []
           for tag_prev in tags:
+            foward_prev.append(foward_dp[i-1][tag_prev] if foward_dp[i-1][tag_prev] else 0.0001 * transition[tag_prev][tag] * emission[tag][word])
             dp_prev.append(dp[i-1][tag_prev] * transition[tag_prev][tag] * emission[tag][word])
             dp_prev_tag.append(tag_prev)
           dp[i][tag] = max(dp_prev)
           bkptr[tag] = dp_prev_tag[dp_prev.index(dp[i][tag])]
           final_viterbi_network.append([word, tag, dp[i][tag]])
+          final_forward_network.append([word, tag, sum(foward_prev)])
         bkptr_list.append(bkptr)
     res = 0
     temp_tag = ""
@@ -96,18 +103,24 @@ def viterbi(sentences, transition, emission, tags):
     print "BEST TAG SEQUENCE HAS PROBABILITY = %e" %res
     for i in range(len(sentence)):
       print '%s -> %s' %(sentence[i], bkptr_tag_list[i])
-    print dp
+
+    print
+    
+    print "FORWARD ALGORITHM RESULTS"
+    for node in final_forward_network:
+      print "P(%s=%s) = %e" %(node[0], node[1], node[2])  
+
     print '\n\n'
 
 def main():
   file_sents = sys.argv[1]
   file_probs = sys.argv[2]
   words, sentences = get_word(file_sents)
-  tags = ["A","B", "phi", "fin"]
-  # tags = ["noun","verb", "inf", "prep", "phi", "fin"]
+  # tags = ["A","B", "phi", "fin"]
+  tags = ["noun","verb", "inf", "prep", "phi", "fin"]
   transition, emission = get_matrix(file_probs, words, tags)
-  tags_normal = ["A", "B"]
-  # tags_normal = ["noun","verb", "inf", "prep"]
+  # tags_normal = ["A", "B"]
+  tags_normal = ["noun","verb", "inf", "prep"]
   viterbi(sentences, transition, emission, tags_normal)
   # print emission
 
